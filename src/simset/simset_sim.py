@@ -397,8 +397,9 @@ class SimSET_Reconstruction(object):
         
         print("Starting STIR reconstruction")
         
-        #reconstruction_type = self.scanner.get("recons_type")
-        recons_algorithm = self.scanner.get("recons_type")
+        recons_algorithm = self.params.get("recons_type")
+        if not recons_algorithm:
+            recons_algorithm = self.scanner.get("recons_type")
         sinogram_stir = join(self.output_dir, "stir_sinogram.hs")
         additive_sino_stir = join(self.output_dir, "stir_additivesino.hs")
         att_stir = join(self.output_dir, "stir_att.hs")

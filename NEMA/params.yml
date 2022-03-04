@@ -1,0 +1,36 @@
+simulation_environment:  # Set to 0 for local computer, 1 for Cesga
+
+#Define the simulation type and the environment
+sim_type:       # SimSET, STIR or GATE (only SimSET working)
+do_simulation: 1        # Set to 0 to reconstruction previous simulation
+do_reconstruction: 1      # Set to 0 to generate adq data only
+divisions:               # Number os subprocesses for parallel simulation
+
+# PET system (Vereos, Siemens_mCT, Discovery_ST, Discovery_STE, GE_Advance)
+scanner: 
+# Scanner Model (simple_pet, cylindrical)
+model_type: 
+
+#Patient Variables
+patient_dirname: 
+act_map:  #poner los que me ha pasado Jose. probar a ver si en nii funcionan
+att_map: 
+output_dir:          #Name of the Results Dir
+
+#Config your phantom
+center_slice:            # The slice number to be placed on the center of the scanner
+total_dose:             # mCi
+simulation_time:         # secods
+
+#SimSET Parameters (not used by STIR sim)
+sampling_photons: 100000000 #1000 #100000000         # Set to 0 to avoid importance sampling
+photons: 0                  # Set to 0 to do a realistic noise simulation
+add_randoms: 0              # 1 activate Randoms simulation (Will force sampling_photons=0 and photons=0)
+phglistmode: 0             # History Files from the phg module (Needed for LM reconstruction. Potentially very big)
+detlistmode: 0              # History Files from the detector module (You need this for adding randoms. If add_randoms=1 will be forced)
+
+# Reconstruction type: "FBP2D", "FBP3D", "OSEM2D", "OSEM3D" 
+recons_type: 
+
+#BrainVISET Iterations (Iterations: 1 will run a conventional simulation)
+maximumIteration: 1
