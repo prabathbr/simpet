@@ -236,6 +236,17 @@ def FBP3D_recons(config,scannerParams, sinograms_stir, output_dir, log_file):
 
     return output
 
+def SSRB(config, sinograms_stir, num_seg, num_views, do_norm, log_file):
+    
+    stir_dir = config.get("dir_stir")
+    ssrb = join(stir_dir,'bin','SSRB')    
+    output_ssrb_sinos = sinograms_stir[0:-3]+"_ssrb.hs"
+    command = '%s %s %s %s %s %s >> %s' % (ssrb, output_ssrb_sinos, sinograms_stir, num_seg, num_views, do_norm, log_file )
+    tools.osrun(command, log_file)
+    
+    return output_ssrb_sinos
+    
+    
 def FORE_rebin(config, sinograms_stir, maxSegment, output_dir, log_file):
     
     stir_dir = config.get("dir_stir")

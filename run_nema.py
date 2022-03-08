@@ -27,7 +27,7 @@ def main():
     mode="SimSET"
     log_file=join(dir_path,"NEMA","NEMA_log_file.txt")            
 
-    spat_res(dir_path, scanner, model_type, div, simEnv, mode, log_file)      
+    #spat_res(dir_path, scanner, model_type, div, simEnv, mode, log_file)      
     sensitivity(dir_path, scanner, model_type, div, simEnv, mode, log_file)
 
     # return 
@@ -128,12 +128,11 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
     params_file[('divisions')]=divisions
     params_file[('scanner')]=scanner
     
-    params_file[('recons_type')]="OSEM3D"
-    params_file[('total_dose')]=0.39
-    params_file[('simulation_time')]=60 
+    params_file[('total_dose')]=0.01 #0.39
+    params_file[('simulation_time')]=1 #60 
     params_file[('center_slice')]=86
     
-    params_file[('do_simulation')]=0
+    params_file[('do_reconstruction')]=0
     
     maps_path = join(dir_path,"NEMA","phantoms","sensitivity")
     shutil.copy(join(maps_path,"0_0_0_act.hdr"),data_path)
@@ -171,12 +170,19 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
             new_trues_file_path = join(new_folder_SSRB,"trues.hdr")
             simpet.tools.copy_analyze(trues_file_hdr,new_trues_file_path,new_folder_SSRB,log_file)
             
-            from simpet.src.stir import stir_tools
+            from src.stir import stir_tools
             scannerParams = join(dir_path,"scanners",scanner+".yml")
-            stir_tools.create_stir_hs_from_detparams(scannerParams,new_trues_file_path[0:-3]+"hv")
-            #shutil.copy(new_trues_file_path[0:-3]+"img",new_trues_file_path[0:-3]+"v")
-            
+            sinograms_stir = new_trues_file_path[0:-4]+"_stir.hs"
+            stir_tools.create_stir_hs_from_detparams(scannerParams, sinograms_stir)                        
             simpet.tools.convert_simset_sino_to_stir(new_trues_file_path[0:-3]+"img")
+            shutil.copy(new_trues_file_path[0:-4]+"_stir.img",sinograms_stir[0:-2]+"s")
+            
+            max_segment = scannerParams.get("max_segment")
+            num_seg = max_segment*2 +1 
+            num_views = 1
+            do_norm = 0
+            sinos_stir_ssrb = stir_tools.SSRB(join(dir_path,"config.yml"), sinograms_stir, num_seg, num_views, do_norm, new_folder_SSRB, log_file )
+            print(sinos_stir_ssrb)
             
         else:
             message="Something wrong at the simulation of Sensitivity: C"+str(i)
