@@ -7,6 +7,8 @@ import datetime
 import yaml
 import simpet
 from multiprocessing import Process
+import numpy as np
+import matplotlib.pyplot as plt 
 
 def main():
     
@@ -193,21 +195,21 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
     params_file[('patient_dirname')]=data_file_name
     params_file[('act_map')]="0_0_0_act.hdr"
     
-    for i in range(6):        
-        shutil.copy(join(maps_path,"0_0_0_att_C"+str(i)+".hdr"),data_path)
-        shutil.copy(join(maps_path,"0_0_0_att_C"+str(i)+".img"),data_path)        
+    for i in range(5):        
+        shutil.copy(join(maps_path,"0_0_0_att_C"+str(i+1)+".hdr"),data_path)
+        shutil.copy(join(maps_path,"0_0_0_att_C"+str(i+1)+".img"),data_path)        
         
-        params_file[('att_map')]="0_0_0_att_C"+str(i)+".hdr"
-        params_file[('output_dir')]="NEMA_Sensitivity_C"+str(i)
+        params_file[('att_map')]="0_0_0_att_C"+str(i+1)+".hdr"
+        params_file[('output_dir')]="NEMA_Sensitivity_C"+str(i+1)
         
-        new_params_file_path = join(data_path,"params_Sensitivity_C"+str(i)+".yml")
+        new_params_file_path = join(data_path,"params_Sensitivity_C"+str(i+1)+".yml")
         with open(new_params_file_path,"w") as pf:
             yaml.dump(params_file,pf,sort_keys=False)  
             
         message="Params file created: "+ new_params_file_path
         simpet.tools.log_message(log_file, message, 'info')
         
-        message="Starting simulation for Sensitivity: C"+str(i)
+        message="Starting simulation for Sensitivity: C"+str(i+1)
         simpet.tools.log_message(log_file, message, 'info')
         
         simu = simpet.SimPET(new_params_file_path)
@@ -242,14 +244,17 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
             
             
         else:
-            message="Something wrong at the simulation of Sensitivity: C"+str(i)
+            message="Something wrong at the simulation of Sensitivity: C"+str(i+1)
             simpet.tools.log_message(log_file, message, 'error')
             
     sensitivity = compute_sens(dir_path, scannerParams, os.path.basename(sinos_stir_ssrb), log_file)
     return sensitivity
 
 def compute_sens(dir_path, scannerParams, sinos_name, log_file):
-    
+    t_acq=60 #seconds
+    n_tubes=5
+    X_j=np.array([1.25, 2.5, 3.75, 5, 6.25]) # mm
+    A_cal = 14.430 # MBq
     scanner_name=os.path.basename(scannerParams)
     with open(scannerParams, 'rb') as f:
         scanner_file = yaml.load(f.read(), Loader=yaml.FullLoader) 
@@ -257,13 +262,33 @@ def compute_sens(dir_path, scannerParams, sinos_name, log_file):
     views = scanner_file.get("num_aa_bins")
     bins = scanner_file.get("num_td_bins") 
     slices = scanner_file.get("max_segment")*2+1
-    
-    for i in range(6):
-        rel_path = join(results_path,"NEMA_Sensitivity_C"+str(i),"SimSET_Sim_"+scanner_name,"SSRB")
-        simpet.tools.create_analyze_from_imgdata(join(rel_path,sinos_name[0:-2]+"s"), join(rel_path,sinos_name[0:-2]+"hdr"), bins, views, slices, 1.0, 1.0, 1.0)
-        img, data = tools.nib_load(join(rel_path,sinos_name[0:-2]+"hdr")
+    counts= np.zeros(slices)
+    R = np.zeros((n_tubes,slices))
+    for i in range(n_tubes):
+        rel_path = join(results_path,"NEMA_Sensitivity_C"+str(i+1),"SimSET_Sim_"+scanner_name,"SSRB")
+        simpet.tools.create_analyze_from_imgdata(join(rel_path,sinos_name[0:-2]+"s"), join(rel_path,sinos_name[0:-2]+"hdr"), bins, slices, views,  1.0, 1.0, 1.0)
+        img, data = simpet.tools.nib_load(join(rel_path,sinos_name[0:-2]+"hdr"))
         for j in range(slices):
-            #
+            counts[j]=sum(sum(data[:,j,:]))
+        R[i, :]=counts/t_acq
+    
+    R_j = sum(np.transpose(R)) 
+    x = -2*X_j 
+
+    coeff = np.polyfit(x,np.log(R_j),1)  
+    R_corr0 = np.exp(coeff[1])
+    S_Tot = R_corr0/A_cal #counts/sec/MBq    
+    
+    S_i = (R[0, :]/R_j[0])*S_Tot*0.001
+    
+    plt.figure(1)
+    plt.plot(X_j,sum(np.transpose(R/A_cal)))
+    plt.savefig(join(dir_path, "NEMA","fig1_sensitivity.png"))
+    plt.figure(2)
+    plt.plot(np.arange(slices),S_i)
+    plt.savefig(join(dir_path, "NEMA","fig2_sensitivity.png"))
+    
+    return S_Tot*0.001 #counts/sec/kBq
     
 if __name__== "__main__":
     main()
