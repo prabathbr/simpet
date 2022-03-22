@@ -83,7 +83,9 @@ class SimPET(object):
 
         if self.params.get("do_reconstruction")==1:
 
-            reconstruction_type = self.scanner.get("recons_type")
+            reconstruction_type = self.params.get("recons_type")
+            if not reconstruction_type:            
+                reconstruction_type = self.scanner.get("recons_type")
 
             if not exists (projections_dir):
                     raise Exception('The projections directory does not exist. Run your simulation first.')

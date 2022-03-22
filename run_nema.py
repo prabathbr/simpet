@@ -27,15 +27,44 @@ def main():
     div=8
     simEnv=0
     mode="SimSET"
-    log_file=join(dir_path,"NEMA","NEMA_log_file.txt")            
-
-    sensitivity(dir_path, scanner, model_type, div, simEnv, mode, log_file)
-    #
-    #spat_res(dir_path, scanner, model_type, div, simEnv, mode, log_file)  
-    image_quality(dir_path, scanner, model_type, div, simEnv, mode, log_file)
-    # return 
+    
+    log_file=join(dir_path,"NEMA","NEMA_log_file_"+scanner+".txt")   
+    
+    ### Sensitivity test
+    A_cal= 14.430 # MBq (activity for sensitivity test)
+    t_cal = 60 # s (time of the sensitivity assay)
+    real_sens_value = 8.8 # cps/kBq (value obtained for the Discovery ST)
+    center_slice_Sens = 86
+    ###
+         
+    ### Spatial resolution test
+    dose_SR = 0.002 # mCi (activity used in the real test for the Discovery ST)
+    length_SR = 1200 # s
+    center_slices = [86, 130] # center and 1/4 FOV
+    fwhm = {"0_0" : [4.6, 4.6, 4.3], "0_10":[5.7,4.7,6], "10_0":[5.7,4.7,6]} # published fwhm for Discovery_STE
+    ### 
+    
+    ### Image Quality test
+    dose_IQ = 1.25 #mCi
+    length_IQ = 1800 #s ¿?
+    center_slice_IQ = 69
+    ###
+    
+    # simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
+    # sens_factor = simu_sens_value/real_sens_value
+    # print(simu_sens_value) # 57.420182893299916
+    # print(sens_factor) # 6.525020783329535
+    
+    sens_factor = 6.525020783329535
+    
+    length_spat_res = np.round(length_SR/sens_factor,2)
+    length_imag_qua = np.round(length_IQ/sens_factor,2)
+    
+    spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
+    # image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
+  
         
-def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, log_file):
+def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slices, fwhm, log_file):
      
     message="Starting Spatial Resolution measurements"
     simpet.tools.log_message(log_file, message, 'info')
@@ -59,8 +88,8 @@ def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, lo
     params_file[('scanner')]=scanner
     
     params_file[('recons_type')]="FBP2D"
-    params_file[('total_dose')]=0.002 #mCi
-    params_file[('simulation_time')]=255 #s
+    params_file[('total_dose')]=dose #mCi
+    params_file[('simulation_time')]= float(length) #s
     params_file[('patient_dirname')]=data_file_name
        
     maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
@@ -73,7 +102,7 @@ def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, lo
         params_file[('act_map')]=i+"_act.hdr"
         params_file[('att_map')]=i+"_att.hdr"
         params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
-        params_file[('center_slice')]=86 #center of the FOV (cm)
+        params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
         
         new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
         with open(new_params_file_path,"w") as pf:
@@ -87,7 +116,7 @@ def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, lo
         simu = simpet.SimPET(new_params_file_path)
         simu.run()
         
-        params_file[('center_slice')]=130 #1/4 FOV
+        params_file[('center_slice')]=center_slices[1] #1/4 FOV
         
         params_file[('act_map')]=i+"_act.hdr"
         params_file[('att_map')]=i+"_att.hdr"
@@ -105,8 +134,91 @@ def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, lo
         
         simu = simpet.SimPET(new_params_file_path)
         simu.run()
+        
+    compute_spatRes(dir_path, scanner, mode, fwhm, log_file)
+
+def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
+    results_path = join(dir_path,"Results")
+    image = join(results_path,"NEMA_SpatRes_0_0_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hv")
+    half = np.zeros((6,3))
+    thent = np.zeros((6,3))
     
-def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mode, log_file):
+    with open(image) as f:
+            lines = f.readlines()
+
+    lines = [x.strip() for x in lines]    
+    image_dims = {"size_x": lines[16].split()[4] , "sf_x": lines[17].split()[5] , "size_y": lines[19].split()[4] , "sf_y": lines[20].split()[5] , "size_z": lines[22].split()[4] , "sf_z": lines[23].split()[5] }
+    
+    cont=0
+    for i in ["0_0", "0_10", "10_0"]:
+        [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
+        half[cont,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("size_y"),log_file)
+        half[cont,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("size_z"),log_file)
+        half[cont,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("size_x"),log_file)
+        
+        [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_OF",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
+        half[cont+1,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("size_y"),log_file)
+        half[cont+1,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("size_z"),log_file)
+        half[cont+1,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("size_x"),log_file)
+        
+        cont=cont+2
+
+def compute_fw(profile,dim,log_file):
+    #
+    
+def profiles(image_hdr, image_dims, fwhm, log_file):
+    num_vox_x = 2*np.round(fwhm[0]/image_dims.get("sf_x"))
+    num_vox_y = 2*np.round(fwhm[1]/image_dims.get("sf_y"))
+    num_vox_z = 2*np.round(fwhm[2]/image_dims.get("sf_z"))
+    
+    sum_Z = np.zeros((image_dims.get("size_x"),image_dims.get("size_y")))
+    
+    p_X = np.zeros((1,image_dims.get("size_x")))
+    p_Y = np.zeros((1,image_dims.get("size_y")))
+    p_Z = np.zeros((1,image_dims.get("size_z")))
+    
+    img, data = simpet.tools.nib_load(image_hdr)
+    
+    max_in_slices = 0.0
+    max_slice = 0.0
+    for z in range(0, image_dims.get("size_z")-1):
+        if max(max(data[:,:,z])) > max_in_slices :
+            max_in_slices = max(max(data[:,:,z]))
+            max_slice = z
+    
+    max_num_vox_z = min(max_slice+num_vox_z, image_dims.get("size_z")-1)
+    min_num_vox_z = max(max_slice-num_vox_z,0)
+    data_aux = data[:,:,max_slice:max_num_vox_z]
+    data_aux2 = data[:,:,min_num_vox_z:max_slice-1]
+    sum_Z=data_aux.sum(2)+data_aux2.sum(2) #sum along axis 2 (start in 0)
+    #sum_Z = (data[:,:,max_slice:max_num_vox_z]).sum(2) + (data[:,:,min_num_vox_z:max_slice-1]).sum(2)
+    
+    ind_max_x = (sum_Z.max(0)).argmax()
+    ind_max_y = (sum_Z.max(1)).argmax()
+
+    max_num_vox_x = min(ind_max_x + num_vox_x, image_dims.get("size_x")-1)
+    min_num_vox_x = max(ind_max_x - num_vox_x, 0) 
+    max_num_vox_y = min(ind_max_y + num_vox_y, image_dims.get("size_y")-1)
+    min_num_vox_y = max(ind_max_y - num_vox_y, 0)
+    
+    p_X = (sum_Z[min_num_vox_y:max_num_vox_y,:]).sum()
+    p_Y = (sum_Z[:,min_num_vox_x:max_num_vox_x]).sum()
+    
+    ind_max_cols = ((data[:,:,max_slice]).max(0)).argmax()
+    ind_max_rows = ((data[:,:,max_slice]).max(1)).argmax()
+    min_col = max(ind_max_cols - num_vox_x, 0)
+    max_col = min(ind_max_cols + num_vox_x, image_dims.get("size_x")-1)
+    min_row = max(ind_max_rows - num_vox_y, 0)
+    max_row = min(ind_max_rows + num_vox_y, image_dims.get("size_y")-1)
+    
+    for k1 in range(min_col,max_col+1,1):
+        for k2 in range(min_row,max_row-1,1):
+            p_Z = p_Z + (data[k2,k1,:]).reshape((1,image_dims.get("size_z")))
+            
+    return p_X, p_Y, p_Z
+    
+
+def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slice_IQ, log_file):
      
     message="Starting Image Quality measurements"
     simpet.tools.log_message(log_file, message, 'info')
@@ -130,8 +242,8 @@ def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mod
     params_file[('scanner')]=scanner
     
     params_file[('recons_type')]="OSEM3D"
-    params_file[('total_dose')]= 1.25 #mCi
-    params_file[('simulation_time')]=100  #s
+    params_file[('total_dose')]= dose #mCi
+    params_file[('simulation_time')]= float(length)  #s
     params_file[('patient_dirname')]=data_file_name
        
     maps_path = join(dir_path,"NEMA","phantoms","imageQuality")
@@ -144,7 +256,7 @@ def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mod
     params_file[('act_map')]="IEC_NEMA_ACT.hdr"
     params_file[('att_map')]="IEC_NEMA_ATT.hdr"
     params_file[('output_dir')]="NEMA_imageQuality"
-    params_file[('center_slice')]=69
+    params_file[('center_slice')]=center_slice_IQ
         
     new_params_file_path = join(data_path,"params_imageQuality.yml")
     with open(new_params_file_path,"w") as pf:
@@ -160,7 +272,7 @@ def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mod
              
          
     
-def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode, log_file):    
+def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode, A_cal, t_cal, center_slice_Sens, log_file):    
     message="Starting Sensitivity measurements"
     simpet.tools.log_message(log_file, message, 'info')
     
@@ -182,9 +294,10 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
     params_file[('divisions')]=divisions
     params_file[('scanner')]=scanner
     
-    params_file[('total_dose')]=0.39 #mCi
-    params_file[('simulation_time')]=60  #s
-    params_file[('center_slice')]=86
+    total_dose = np.round(A_cal*0.027027027,2)
+    params_file[('total_dose')]=float(total_dose) #0.39 #mCi
+    params_file[('simulation_time')]=t_cal #60  #s
+    params_file[('center_slice')]=center_slice_Sens
     
     params_file[('do_reconstruction')]=0
     
@@ -215,10 +328,10 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
         simu = simpet.SimPET(new_params_file_path)
         simu.run()        
     
-        trues_file_hdr=join(dir_path,"Results",params_file.get('output_dir'),"SimSET_Sim_"+scanner,"division_0","trues.hdr")
+        trues_file_hdr=join(dir_path,"Results",params_file.get('output_dir'),mode+"_Sim_"+scanner,"division_0","trues.hdr")
         
         if exists(trues_file_hdr):
-            new_folder_SSRB= join(dir_path,"Results",params_file.get('output_dir'),"SimSET_Sim_"+scanner,"SSRB")
+            new_folder_SSRB= join(dir_path,"Results",params_file.get('output_dir'),mode+"_Sim_"+scanner,"SSRB")
             if not exists(new_folder_SSRB):
                 os.makedirs(new_folder_SSRB)
             new_trues_file_path = join(new_folder_SSRB,"trues.hdr")
@@ -246,16 +359,17 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
         else:
             message="Something wrong at the simulation of Sensitivity: C"+str(i+1)
             simpet.tools.log_message(log_file, message, 'error')
-            
-    sensitivity = compute_sens(dir_path, scannerParams, os.path.basename(sinos_stir_ssrb), log_file)
+     
+    sensitivity = compute_sens(dir_path, scannerParams, mode, os.path.basename(sinos_stir_ssrb), A_cal, t_cal, log_file)
     return sensitivity
 
-def compute_sens(dir_path, scannerParams, sinos_name, log_file):
-    t_acq=60 #seconds
+def compute_sens(dir_path, scannerParams, mode, sinos_name, A_cal, t_cal, log_file):
+    # t_acq=60 #seconds
     n_tubes=5
     X_j=np.array([1.25, 2.5, 3.75, 5, 6.25]) # mm
-    A_cal = 14.430 # MBq
+    # A_cal = 14.430 # MBq
     scanner_name=os.path.basename(scannerParams)
+    scanner_name=scanner_name[0:-4] #remove extension ".yml"
     with open(scannerParams, 'rb') as f:
         scanner_file = yaml.load(f.read(), Loader=yaml.FullLoader) 
     results_path = join(dir_path,"Results") 
@@ -265,12 +379,12 @@ def compute_sens(dir_path, scannerParams, sinos_name, log_file):
     counts= np.zeros(slices)
     R = np.zeros((n_tubes,slices))
     for i in range(n_tubes):
-        rel_path = join(results_path,"NEMA_Sensitivity_C"+str(i+1),"SimSET_Sim_"+scanner_name,"SSRB")
+        rel_path = join(results_path,"NEMA_Sensitivity_C"+str(i+1),mode+"_Sim_"+scanner_name,"SSRB")
         simpet.tools.create_analyze_from_imgdata(join(rel_path,sinos_name[0:-2]+"s"), join(rel_path,sinos_name[0:-2]+"hdr"), bins, slices, views,  1.0, 1.0, 1.0)
         img, data = simpet.tools.nib_load(join(rel_path,sinos_name[0:-2]+"hdr"))
         for j in range(slices):
             counts[j]=sum(sum(data[:,j,:]))
-        R[i, :]=counts/t_acq
+        R[i, :]=counts/t_cal
     
     R_j = sum(np.transpose(R)) 
     x = -2*X_j 
