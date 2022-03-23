@@ -66,74 +66,74 @@ def main():
         
 def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slices, fwhm, log_file):
      
-    message="Starting Spatial Resolution measurements"
-    simpet.tools.log_message(log_file, message, 'info')
+    # message="Starting Spatial Resolution measurements"
+    # simpet.tools.log_message(log_file, message, 'info')
     
-    data_file_name="NEMA_spatRes"
-    data_path = join(dir_path,"Data",data_file_name)
-    if not exists(data_path):
-        os.makedirs(data_path)            
+    # data_file_name="NEMA_spatRes"
+    # data_path = join(dir_path,"Data",data_file_name)
+    # if not exists(data_path):
+    #     os.makedirs(data_path)            
       
-    message="Data folder created: "+data_path
-    simpet.tools.log_message(log_file, message, 'info')
+    # message="Data folder created: "+data_path
+    # simpet.tools.log_message(log_file, message, 'info')
     
-    params_file_path = join(dir_path,"NEMA","params.yml")
-    with open(params_file_path,'rb') as f:
-        params_file = yaml.load(f.read(), Loader=yaml.FullLoader)
+    # params_file_path = join(dir_path,"NEMA","params.yml")
+    # with open(params_file_path,'rb') as f:
+    #     params_file = yaml.load(f.read(), Loader=yaml.FullLoader)
         
-    params_file[('simulation_environment')]=simuEnvironment
-    params_file[('model_type')]=model_type
-    params_file[('sim_type')]=mode
-    params_file[('divisions')]=divisions
-    params_file[('scanner')]=scanner
+    # params_file[('simulation_environment')]=simuEnvironment
+    # params_file[('model_type')]=model_type
+    # params_file[('sim_type')]=mode
+    # params_file[('divisions')]=divisions
+    # params_file[('scanner')]=scanner
     
-    params_file[('recons_type')]="FBP2D"
-    params_file[('total_dose')]=dose #mCi
-    params_file[('simulation_time')]= float(length) #s
-    params_file[('patient_dirname')]=data_file_name
+    # params_file[('recons_type')]="FBP2D"
+    # params_file[('total_dose')]=dose #mCi
+    # params_file[('simulation_time')]= float(length) #s
+    # params_file[('patient_dirname')]=data_file_name
        
-    maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
-    for i in ["0_0", "10_0", "0_10"]:
-        shutil.copy(join(maps_path,i+"_act.hdr"),data_path)
-        shutil.copy(join(maps_path,i+"_act.img"),data_path)
-        shutil.copy(join(maps_path,i+"_att.hdr"),data_path)
-        shutil.copy(join(maps_path,i+"_att.img"),data_path)
+    # maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
+    # for i in ["0_0", "10_0", "0_10"]:
+    #     shutil.copy(join(maps_path,i+"_act.hdr"),data_path)
+    #     shutil.copy(join(maps_path,i+"_act.img"),data_path)
+    #     shutil.copy(join(maps_path,i+"_att.hdr"),data_path)
+    #     shutil.copy(join(maps_path,i+"_att.img"),data_path)
         
-        params_file[('act_map')]=i+"_act.hdr"
-        params_file[('att_map')]=i+"_att.hdr"
-        params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
-        params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
+    #     params_file[('act_map')]=i+"_act.hdr"
+    #     params_file[('att_map')]=i+"_att.hdr"
+    #     params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
+    #     params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
         
-        new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
-        with open(new_params_file_path,"w") as pf:
-            yaml.dump(params_file,pf,sort_keys=False)          
-        message="Params file created: "+ new_params_file_path
-        simpet.tools.log_message(log_file, message, 'info')
+    #     new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
+    #     with open(new_params_file_path,"w") as pf:
+    #         yaml.dump(params_file,pf,sort_keys=False)          
+    #     message="Params file created: "+ new_params_file_path
+    #     simpet.tools.log_message(log_file, message, 'info')
         
-        message="Starting simulation for Spatial Resolution"+i+"_center"
-        simpet.tools.log_message(log_file, message, 'info')
+    #     message="Starting simulation for Spatial Resolution"+i+"_center"
+    #     simpet.tools.log_message(log_file, message, 'info')
         
-        simu = simpet.SimPET(new_params_file_path)
-        simu.run()
+    #     simu = simpet.SimPET(new_params_file_path)
+    #     simu.run()
         
-        params_file[('center_slice')]=center_slices[1] #1/4 FOV
+    #     params_file[('center_slice')]=center_slices[1] #1/4 FOV
         
-        params_file[('act_map')]=i+"_act.hdr"
-        params_file[('att_map')]=i+"_att.hdr"
-        params_file[('output_dir')]="NEMA_SpatRes_"+i+"_OF"
+    #     params_file[('act_map')]=i+"_act.hdr"
+    #     params_file[('att_map')]=i+"_att.hdr"
+    #     params_file[('output_dir')]="NEMA_SpatRes_"+i+"_OF"
         
-        new_params_file_path = join(data_path,"params_SpatRes_"+i+"_OF.yml")
-        with open(new_params_file_path,"w") as pf:
-            yaml.dump(params_file,pf,sort_keys=False)  
+    #     new_params_file_path = join(data_path,"params_SpatRes_"+i+"_OF.yml")
+    #     with open(new_params_file_path,"w") as pf:
+    #         yaml.dump(params_file,pf,sort_keys=False)  
             
-        message="Params file created: "+ new_params_file_path
-        simpet.tools.log_message(log_file, message, 'info')
+    #     message="Params file created: "+ new_params_file_path
+    #     simpet.tools.log_message(log_file, message, 'info')
         
-        message="Starting simulation for Spatial Resolution: "+i+"_1/4 FOV"
-        simpet.tools.log_message(log_file, message, 'info')
+    #     message="Starting simulation for Spatial Resolution: "+i+"_1/4 FOV"
+    #     simpet.tools.log_message(log_file, message, 'info')
         
-        simu = simpet.SimPET(new_params_file_path)
-        simu.run()
+    #     simu = simpet.SimPET(new_params_file_path)
+    #     simu.run()
         
     compute_spatRes(dir_path, scanner, mode, fwhm, log_file)
 
@@ -141,35 +141,115 @@ def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
     results_path = join(dir_path,"Results")
     image = join(results_path,"NEMA_SpatRes_0_0_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hv")
     half = np.zeros((6,3))
-    thent = np.zeros((6,3))
+    tenth = np.zeros((6,3))
     
     with open(image) as f:
             lines = f.readlines()
 
     lines = [x.strip() for x in lines]    
-    image_dims = {"size_x": lines[16].split()[4] , "sf_x": lines[17].split()[5] , "size_y": lines[19].split()[4] , "sf_y": lines[20].split()[5] , "size_z": lines[22].split()[4] , "sf_z": lines[23].split()[5] }
+    image_dims = {"size_x": int(lines[16].split()[4]) , "sf_x": float(lines[17].split()[5]) , "size_y": int(lines[19].split()[4]) , "sf_y": float(lines[20].split()[5]) , "size_z": int(lines[22].split()[4]) , "sf_z": float(lines[23].split()[5]) }
     
     cont=0
     for i in ["0_0", "0_10", "10_0"]:
+        
         [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
-        half[cont,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("size_y"),log_file)
-        half[cont,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("size_z"),log_file)
-        half[cont,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("size_x"),log_file)
+    
+        half[cont,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
+        half[cont,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
+        half[cont,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("sf_x"),log_file)
         
         [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_OF",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
-        half[cont+1,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("size_y"),log_file)
-        half[cont+1,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("size_z"),log_file)
-        half[cont+1,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("size_x"),log_file)
+        half[cont+1,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
+        half[cont+1,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
+        half[cont+1,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("sf_x"),log_file)
         
         cont=cont+2
+    
+    aux = (half[0,0]+half[0,2]+half[1,0]+half[1,2])/4
+    res = {'1cm_H_trans': aux}
+    aux = (half[0,1]+half[1,1])/2
+    res.update({'1cm_H_axi': aux})
+    aux = (tenth[0,0]+tenth[0,2]+tenth[1,0]+tenth[1,2])/4
+    res.update({'1cm_T_trans' : aux})
+    aux = (tenth[0,1]+tenth[1,1])/2
+    res.update({'1cm_T_axi' : aux})
+    aux = (half[2,0]+half[3,0]+half[4,2]+half[5,2])/4
+    res.update({'10cm_H_rad' : aux})
+    aux = (half[2,2]+half[3,2]+half[4,0]+half[5,0])/4
+    res.update({'10cm_H_tang' : aux})
+    aux = (half[2,1]+half[3,1]+half[4,1]+half[5,1])/4
+    res.update({'10cm_H_axi' : aux})
+    aux = (tenth[2,0]+tenth[3,0]+tenth[4,2]+tenth[5,2])/4
+    res.update({'10cm_T_rad' : aux})
+    aux = (tenth[2,2]+tenth[3,2]+tenth[4,0]+tenth[5,0])/4
+    res.update({'10cm_T_tang' : aux})
+    aux = (tenth[2,1]+tenth[3,1]+tenth[4,1]+tenth[5,1])/4
+    res.update({'10cm_T_axi' : aux})
+    
+    message=("Spatial Resolution Results: \n 1 cm (Half) \n -Transverse: " + 
+    str(res.get('1cm_H_trans')) +"\n -Axial: "+ str(res.get('1cm_H_axi'))+"\n"+
+    " 1 cm (Tenth) \n -Transverse: "+str(res.get('1cm_T_trans'))+" \n -Axial: "+
+    str(res.get('1cm_T_axi'))+"\n \n 10 cm (Half) \n -Radial: "+
+    str(res.get('10cm_H_rad'))+"\n -Tangential: "+str(res.get('10cm_H_tang'))+
+    "\n -Axial: "+str(res.get('10cm_H_axi')) +"\n 10 cm (Tenth) \n -Radial: "+
+    str(res.get('10cm_T_rad'))+"\n -Tangential: "+str(res.get('10cm_T_tang'))+
+    "\n -Axial: "+str(res.get('10cm_T_axi')))
+    simpet.tools.log_message(log_file, message, 'info')
+    print(message)
+    
+def compute_fw(y,sf,log_file):
+    
+    max_pos = y.argmax() #search for the position of the maximum in y
+    x1 = [max_pos-1, max_pos, max_pos+1]
+    
+    y1 = y[0,x1]
+    p = np.polyfit(x1,y1,2) #parabolic fit
+    max_indx = -p[1]/(2*p[0]) # save the first coordinate of the maximum of the parable
+    max_parab = np.polyval(p,max_indx)
+    
+    c_half = max_parab*0.5
+    c_tenth = max_parab*0.1
+    
+    ind1_half, ind2_half = computeIndices(y,c_half,log_file)
+    ind1_tenth, ind2_tenth = computeIndices(y,c_tenth,log_file)
+    
+    d_half = (ind2_half-ind1_half)*sf
+    d_tenth = (ind2_tenth-ind1_tenth)*sf
+    
+    return d_half, d_tenth
+    
 
-def compute_fw(profile,dim,log_file):
-    #
+def computeIndices(y,c,log_file):
+    f = False
+    i = 0
+    while not f : 
+        if y[0,i]>c:
+            ind1_aux = i
+            f=True
+        i=i+1
+    
+    X_1 = ind1_aux-1
+    X_2 = ind1_aux
+    ind1 = (c-y[0,X_1-1])*(X_2-X_1)/(y[0,X_2-1]-y[0,X_1-1])+X_1
+    
+    f = False
+    i = ind1_aux
+    while not f : 
+        if y[0,i]<c:
+            ind2_aux = i
+            f=True
+        i=i+1
+    
+    X_1 = ind2_aux-1
+    X_2 = ind2_aux
+    ind2 = (c-y[0,X_1-1])*(X_2-X_1)/(y[0,X_2-1]-y[0,X_1-1])+X_1
+    
+    return ind1, ind2
     
 def profiles(image_hdr, image_dims, fwhm, log_file):
-    num_vox_x = 2*np.round(fwhm[0]/image_dims.get("sf_x"))
-    num_vox_y = 2*np.round(fwhm[1]/image_dims.get("sf_y"))
-    num_vox_z = 2*np.round(fwhm[2]/image_dims.get("sf_z"))
+    num_vox_x = int(2*np.round(fwhm[0]/image_dims.get("sf_x")))
+    num_vox_y = int(2*np.round(fwhm[1]/image_dims.get("sf_y")))
+    num_vox_z = int(2*np.round(fwhm[2]/image_dims.get("sf_z")))
     
     sum_Z = np.zeros((image_dims.get("size_x"),image_dims.get("size_y")))
     
@@ -178,21 +258,24 @@ def profiles(image_hdr, image_dims, fwhm, log_file):
     p_Z = np.zeros((1,image_dims.get("size_z")))
     
     img, data = simpet.tools.nib_load(image_hdr)
-    
+   
     max_in_slices = 0.0
-    max_slice = 0.0
-    for z in range(0, image_dims.get("size_z")-1):
-        if max(max(data[:,:,z])) > max_in_slices :
-            max_in_slices = max(max(data[:,:,z]))
+    max_slice = 0
+    for z in range(0, image_dims.get("size_z")-1):        
+        if max((data[:,:,z]).max(0)) > max_in_slices :
+            max_in_slices = max((data[:,:,z]).max(0))
             max_slice = z
+            
     
     max_num_vox_z = min(max_slice+num_vox_z, image_dims.get("size_z")-1)
     min_num_vox_z = max(max_slice-num_vox_z,0)
+    
     data_aux = data[:,:,max_slice:max_num_vox_z]
     data_aux2 = data[:,:,min_num_vox_z:max_slice-1]
-    sum_Z=data_aux.sum(2)+data_aux2.sum(2) #sum along axis 2 (start in 0)
+    print(data_aux2.shape)
+    sum_Z=data_aux.sum(3)+data_aux2.sum(2) #sum along axis 2 (start in 0)
     #sum_Z = (data[:,:,max_slice:max_num_vox_z]).sum(2) + (data[:,:,min_num_vox_z:max_slice-1]).sum(2)
-    
+    print(sum_Z[65,65])
     ind_max_x = (sum_Z.max(0)).argmax()
     ind_max_y = (sum_Z.max(1)).argmax()
 
@@ -201,8 +284,10 @@ def profiles(image_hdr, image_dims, fwhm, log_file):
     max_num_vox_y = min(ind_max_y + num_vox_y, image_dims.get("size_y")-1)
     min_num_vox_y = max(ind_max_y - num_vox_y, 0)
     
-    p_X = (sum_Z[min_num_vox_y:max_num_vox_y,:]).sum()
-    p_Y = (sum_Z[:,min_num_vox_x:max_num_vox_x]).sum()
+    p_X = (sum_Z[min_num_vox_y:max_num_vox_y,:]).sum(0)
+    p_X = p_X.reshape((1,image_dims.get("size_x")))
+    p_Y = (sum_Z[:,min_num_vox_x:max_num_vox_x]).sum(1)
+    p_Y = p_Y.reshape((1,image_dims.get("size_y")))
     
     ind_max_cols = ((data[:,:,max_slice]).max(0)).argmax()
     ind_max_rows = ((data[:,:,max_slice]).max(1)).argmax()
@@ -214,8 +299,8 @@ def profiles(image_hdr, image_dims, fwhm, log_file):
     for k1 in range(min_col,max_col+1,1):
         for k2 in range(min_row,max_row-1,1):
             p_Z = p_Z + (data[k2,k1,:]).reshape((1,image_dims.get("size_z")))
-            
-    return p_X, p_Y, p_Z
+    
+    return np.array(p_X), np.array(p_Y), np.array(p_Z)
     
 
 def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slice_IQ, log_file):
