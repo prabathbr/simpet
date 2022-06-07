@@ -150,21 +150,54 @@ def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
     image_dims = {"size_x": int(lines[16].split()[4]) , "sf_x": float(lines[17].split()[5]) , "size_y": int(lines[19].split()[4]) , "sf_y": float(lines[20].split()[5]) , "size_z": int(lines[22].split()[4]) , "sf_z": float(lines[23].split()[5]) }
     
     cont=0
+    cont_fig=1
     for i in ["0_0", "0_10", "10_0"]:
-        
+        print(i)
         [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
-    
+        plt.figure(cont_fig)
+        plt.plot(p_X)
+        plt.title("X "+i+"_center")
+        plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_X_center.png"))
+        
+        plt.figure(cont_fig+1)
+        plt.plot(p_Y)
+        plt.title("Y "+i+"_center")
+        plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Y_center.png"))
+        
+        plt.figure(cont_fig+2)
+        plt.plot(p_Z)
+        plt.title("Z "+i+"_center")
+        plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Z_center.png"))
+        
         half[cont,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
         half[cont,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
         half[cont,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("sf_x"),log_file)
         
         [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_OF",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
-        half[cont+1,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
-        half[cont+1,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
-        half[cont+1,2], tenth[cont,2]=compute_fw(p_X, image_dims.get("sf_x"),log_file)
+        plt.figure(cont_fig+3)
+        plt.plot(p_X)
+        plt.title("X "+i+"_OF")
+        plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_X_OF.png"))
+        
+        plt.figure(cont_fig+4)
+        plt.plot(p_Y)
+        plt.title("Y "+i+"_OF")
+        plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Y_OF.png"))
+        
+        plt.figure(cont_fig+5)
+        plt.plot(p_Z)
+        plt.title("Z "+i+"_OF")
+        plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Z_OF.png"))
+        
+        half[cont+1,0], tenth[cont+1,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
+        half[cont+1,1], tenth[cont+1,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
+        half[cont+1,2], tenth[cont+1,2]=compute_fw(p_X, image_dims.get("sf_x"),log_file)
         
         cont=cont+2
+        cont_fig=cont_fig+6
     
+    print(half)
+    print(tenth)
     aux = (half[0,0]+half[0,2]+half[1,0]+half[1,2])/4
     res = {'1cm_H_trans': aux}
     aux = (half[0,1]+half[1,1])/2
@@ -202,9 +235,12 @@ def compute_fw(y,sf,log_file):
     max_pos = y.argmax() #search for the position of the maximum in y
     x1 = [max_pos-1, max_pos, max_pos+1]
     
-    y1 = y[0,x1]
+    # y1 = y[0,x1]
+    y1=y[x1]
+    print(x1)
+    print(y1)
     p = np.polyfit(x1,y1,2) #parabolic fit
-    max_indx = -p[1]/(2*p[0]) # save the first coordinate of the maximum of the parable
+    max_indx = -p[1]/(2*p[0]) # save the first coordinate of the parable's maximum
     max_parab = np.polyval(p,max_indx)
     
     c_half = max_parab*0.5
@@ -223,26 +259,30 @@ def computeIndices(y,c,log_file):
     f = False
     i = 0
     while not f : 
-        if y[0,i]>c:
+        # if y[0,i]>c:
+        if y[i]>c:
             ind1_aux = i
             f=True
         i=i+1
     
     X_1 = ind1_aux-1
     X_2 = ind1_aux
-    ind1 = (c-y[0,X_1-1])*(X_2-X_1)/(y[0,X_2-1]-y[0,X_1-1])+X_1
+    # ind1 = (c-y[0,X_1-1])*(X_2-X_1)/(y[0,X_2-1]-y[0,X_1-1])+X_1
+    ind1 = (c-y[X_1-1])*(X_2-X_1)/(y[X_2-1]-y[X_1-1])+X_1
     
     f = False
     i = ind1_aux
     while not f : 
-        if y[0,i]<c:
+        # if y[0,i]<c:
+        if y[i]<c:
             ind2_aux = i
             f=True
         i=i+1
     
     X_1 = ind2_aux-1
     X_2 = ind2_aux
-    ind2 = (c-y[0,X_1-1])*(X_2-X_1)/(y[0,X_2-1]-y[0,X_1-1])+X_1
+    # ind2 = (c-y[0,X_1-1])*(X_2-X_1)/(y[0,X_2-1]-y[0,X_1-1])+X_1
+    ind2 = (c-y[X_1-1])*(X_2-X_1)/(y[X_2-1]-y[X_1-1])+X_1
     
     return ind1, ind2
     
@@ -251,58 +291,85 @@ def profiles(image_hdr, image_dims, fwhm, log_file):
     num_vox_y = int(2*np.round(fwhm[1]/image_dims.get("sf_y")))
     num_vox_z = int(2*np.round(fwhm[2]/image_dims.get("sf_z")))
     
-    sum_Z = np.zeros((image_dims.get("size_x"),image_dims.get("size_y")))
-    
-    p_X = np.zeros((1,image_dims.get("size_x")))
-    p_Y = np.zeros((1,image_dims.get("size_y")))
-    p_Z = np.zeros((1,image_dims.get("size_z")))
+    # sum_Z = np.zeros((image_dims.get("size_x"),image_dims.get("size_y")))
+    data_aux= np.zeros((image_dims.get("size_x"),image_dims.get("size_y"),image_dims.get("size_z")))
+    # p_X = np.zeros((1,image_dims.get("size_x")))
+    # p_Y = np.zeros((1,image_dims.get("size_y")))
+    # p_Z = np.zeros((1,image_dims.get("size_z")))
     
     img, data = simpet.tools.nib_load(image_hdr)
-   
-    max_in_slices = 0.0
-    max_slice = 0
-    for z in range(0, image_dims.get("size_z")-1):        
-        if max((data[:,:,z]).max(0)) > max_in_slices :
-            max_in_slices = max((data[:,:,z]).max(0))
-            max_slice = z
+    
+    ind_max=np.where(data==np.amax(data)) #we look for the coordinates of the maximum in data
+    
+    min_num_vox_x = max(0, int(ind_max[0])-num_vox_x)
+    max_num_vox_x = min(int(ind_max[0])+num_vox_x,image_dims.get("size_x")-1)
+    min_num_vox_y = max(0, int(ind_max[1])-num_vox_y)
+    max_num_vox_y = min(int(ind_max[1])+num_vox_y,image_dims.get("size_y")-1)
+    min_num_vox_z = max(0, int(ind_max[2])-num_vox_z)
+    max_num_vox_z = min(int(ind_max[2])+num_vox_z,image_dims.get("size_z")-1)
+    
+    print(min_num_vox_x,max_num_vox_x,min_num_vox_y,max_num_vox_y,min_num_vox_z,max_num_vox_z)
+    for i in range(min_num_vox_x,max_num_vox_x):
+        for j in range(min_num_vox_y,max_num_vox_y):
+            for k in range(min_num_vox_z,max_num_vox_z):
+                data_aux[i,j,k]=data[i,j,k]
+                
+                
+    aux_p_X = np.sum(data_aux,2)
+    p_X = np.sum(aux_p_X, 1)
+    
+    aux_p_Y = np.sum(data_aux,2)
+    p_Y = np.sum(aux_p_Y,0)
+    
+    aux_p_Z = np.sum(data_aux,0)
+    p_Z = np.sum(aux_p_Z,0)
+    
+    # max_in_slices = 0.0
+    # max_slice = 0
+    # for z in range(0, image_dims.get("size_z")-1):        
+    #     if max((data[:,:,z]).max(0)) > max_in_slices :
+    #         max_in_slices = max((data[:,:,z]).max(0))
+    #         max_slice = z
             
     
-    max_num_vox_z = min(max_slice+num_vox_z, image_dims.get("size_z")-1)
-    min_num_vox_z = max(max_slice-num_vox_z,0)
+    # max_num_vox_z = min(max_slice+num_vox_z, image_dims.get("size_z")-1)
+    # min_num_vox_z = max(max_slice-num_vox_z,0)
     
-    data_aux = data[:,:,max_slice:max_num_vox_z]
-    data_aux2 = data[:,:,min_num_vox_z:max_slice-1]
-    print(data_aux2.shape)
-    sum_Z=data_aux.sum(3)+data_aux2.sum(2) #sum along axis 2 (start in 0)
-    #sum_Z = (data[:,:,max_slice:max_num_vox_z]).sum(2) + (data[:,:,min_num_vox_z:max_slice-1]).sum(2)
-    print(sum_Z[65,65])
-    ind_max_x = (sum_Z.max(0)).argmax()
-    ind_max_y = (sum_Z.max(1)).argmax()
+    # data_aux = data[:,:,max_slice:max_num_vox_z]
+    # data_aux2 = data[:,:,min_num_vox_z:max_slice-1]
+    # print(data_aux2.shape)
+    # sum_Z=data_aux.sum(2)+data_aux2.sum(2) #sum along axis 2 (start in 0)
+    # #sum_Z = (data[:,:,max_slice:max_num_vox_z]).sum(2) + (data[:,:,min_num_vox_z:max_slice-1]).sum(2)
+    # print(sum_Z[65,65])
+    # ind_max_x = (sum_Z.max(0)).argmax()
+    # ind_max_y = (sum_Z.max(1)).argmax()
 
-    max_num_vox_x = min(ind_max_x + num_vox_x, image_dims.get("size_x")-1)
-    min_num_vox_x = max(ind_max_x - num_vox_x, 0) 
-    max_num_vox_y = min(ind_max_y + num_vox_y, image_dims.get("size_y")-1)
-    min_num_vox_y = max(ind_max_y - num_vox_y, 0)
+    # max_num_vox_x = min(ind_max_x + num_vox_x, image_dims.get("size_x")-1)
+    # min_num_vox_x = max(ind_max_x - num_vox_x, 0) 
+    # max_num_vox_y = min(ind_max_y + num_vox_y, image_dims.get("size_y")-1)
+    # min_num_vox_y = max(ind_max_y - num_vox_y, 0)
     
-    p_X = (sum_Z[min_num_vox_y:max_num_vox_y,:]).sum(0)
-    p_X = p_X.reshape((1,image_dims.get("size_x")))
-    p_Y = (sum_Z[:,min_num_vox_x:max_num_vox_x]).sum(1)
-    p_Y = p_Y.reshape((1,image_dims.get("size_y")))
+    # p_X = (sum_Z[min_num_vox_y:max_num_vox_y,:]).sum(0)
+    # p_X = p_X.reshape((1,image_dims.get("size_x")))
+    # p_Y = (sum_Z[:,min_num_vox_x:max_num_vox_x]).sum(1)
+    # p_Y = p_Y.reshape((1,image_dims.get("size_y")))
     
-    ind_max_cols = ((data[:,:,max_slice]).max(0)).argmax()
-    ind_max_rows = ((data[:,:,max_slice]).max(1)).argmax()
-    min_col = max(ind_max_cols - num_vox_x, 0)
-    max_col = min(ind_max_cols + num_vox_x, image_dims.get("size_x")-1)
-    min_row = max(ind_max_rows - num_vox_y, 0)
-    max_row = min(ind_max_rows + num_vox_y, image_dims.get("size_y")-1)
+    # ind_max_cols = ((data[:,:,max_slice]).max(0)).argmax()
+    # ind_max_rows = ((data[:,:,max_slice]).max(1)).argmax()
+    # min_col = max(ind_max_cols - num_vox_x, 0)
+    # max_col = min(ind_max_cols + num_vox_x, image_dims.get("size_x")-1)
+    # min_row = max(ind_max_rows - num_vox_y, 0)
+    # max_row = min(ind_max_rows + num_vox_y, image_dims.get("size_y")-1)
     
-    for k1 in range(min_col,max_col+1,1):
-        for k2 in range(min_row,max_row-1,1):
-            p_Z = p_Z + (data[k2,k1,:]).reshape((1,image_dims.get("size_z")))
+    # for k1 in range(min_col,max_col+1,1):
+    #     for k2 in range(min_row,max_row-1,1):
+    #         p_Z = p_Z + (data[k2,k1,:]).reshape((1,image_dims.get("size_z")))
+    # # plt.plot(np.matrix.flatten(p_Y))
     
-    return np.array(p_X), np.array(p_Y), np.array(p_Z)
-    
-
+    # # return np.array(p_X), np.array(p_Y), np.array(p_Z)
+    # return np.matrix.flatten(p_X), np.matrix.flatten(p_Y), np.matrix.flatten(p_Z)
+    # return np.matrix.flatten(p_X), np.matrix.flatten(p_Y), np.matrix.flatten(p_Z)
+    return np.matrix.flatten(p_X), np.matrix.flatten(p_Y), np.matrix.flatten(p_Z)
 def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slice_IQ, log_file):
      
     message="Starting Image Quality measurements"
