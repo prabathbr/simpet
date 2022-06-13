@@ -60,80 +60,80 @@ def main():
     length_spat_res = np.round(length_SR/sens_factor,2)
     length_imag_qua = np.round(length_IQ/sens_factor,2)
     
-    spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
-    # image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
+    # spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
+    image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
   
         
 def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slices, fwhm, log_file):
      
-    # message="Starting Spatial Resolution measurements"
-    # simpet.tools.log_message(log_file, message, 'info')
+    message="Starting Spatial Resolution measurements"
+    simpet.tools.log_message(log_file, message, 'info')
     
-    # data_file_name="NEMA_spatRes"
-    # data_path = join(dir_path,"Data",data_file_name)
-    # if not exists(data_path):
-    #     os.makedirs(data_path)            
+    data_file_name="NEMA_spatRes"
+    data_path = join(dir_path,"Data",data_file_name)
+    if not exists(data_path):
+        os.makedirs(data_path)            
       
-    # message="Data folder created: "+data_path
-    # simpet.tools.log_message(log_file, message, 'info')
+    message="Data folder created: "+data_path
+    simpet.tools.log_message(log_file, message, 'info')
     
-    # params_file_path = join(dir_path,"NEMA","params.yml")
-    # with open(params_file_path,'rb') as f:
-    #     params_file = yaml.load(f.read(), Loader=yaml.FullLoader)
+    params_file_path = join(dir_path,"NEMA","params.yml")
+    with open(params_file_path,'rb') as f:
+        params_file = yaml.load(f.read(), Loader=yaml.FullLoader)
         
-    # params_file[('simulation_environment')]=simuEnvironment
-    # params_file[('model_type')]=model_type
-    # params_file[('sim_type')]=mode
-    # params_file[('divisions')]=divisions
-    # params_file[('scanner')]=scanner
+    params_file[('simulation_environment')]=simuEnvironment
+    params_file[('model_type')]=model_type
+    params_file[('sim_type')]=mode
+    params_file[('divisions')]=divisions
+    params_file[('scanner')]=scanner
     
-    # params_file[('recons_type')]="FBP2D"
-    # params_file[('total_dose')]=dose #mCi
-    # params_file[('simulation_time')]= float(length) #s
-    # params_file[('patient_dirname')]=data_file_name
+    params_file[('recons_type')]="FBP2D"
+    params_file[('total_dose')]=dose #mCi
+    params_file[('simulation_time')]= float(length) #s
+    params_file[('patient_dirname')]=data_file_name
        
-    # maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
-    # for i in ["0_0", "10_0", "0_10"]:
-    #     shutil.copy(join(maps_path,i+"_act.hdr"),data_path)
-    #     shutil.copy(join(maps_path,i+"_act.img"),data_path)
-    #     shutil.copy(join(maps_path,i+"_att.hdr"),data_path)
-    #     shutil.copy(join(maps_path,i+"_att.img"),data_path)
+    maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
+    for i in ["0_0", "10_0", "0_10"]:
+        shutil.copy(join(maps_path,i+"_act.hdr"),data_path)
+        shutil.copy(join(maps_path,i+"_act.img"),data_path)
+        shutil.copy(join(maps_path,i+"_att.hdr"),data_path)
+        shutil.copy(join(maps_path,i+"_att.img"),data_path)
         
-    #     params_file[('act_map')]=i+"_act.hdr"
-    #     params_file[('att_map')]=i+"_att.hdr"
-    #     params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
-    #     params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
+        params_file[('act_map')]=i+"_act.hdr"
+        params_file[('att_map')]=i+"_att.hdr"
+        params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
+        params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
         
-    #     new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
-    #     with open(new_params_file_path,"w") as pf:
-    #         yaml.dump(params_file,pf,sort_keys=False)          
-    #     message="Params file created: "+ new_params_file_path
-    #     simpet.tools.log_message(log_file, message, 'info')
+        new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
+        with open(new_params_file_path,"w") as pf:
+            yaml.dump(params_file,pf,sort_keys=False)          
+        message="Params file created: "+ new_params_file_path
+        simpet.tools.log_message(log_file, message, 'info')
         
-    #     message="Starting simulation for Spatial Resolution"+i+"_center"
-    #     simpet.tools.log_message(log_file, message, 'info')
+        message="Starting simulation for Spatial Resolution"+i+"_center"
+        simpet.tools.log_message(log_file, message, 'info')
         
-    #     simu = simpet.SimPET(new_params_file_path)
-    #     simu.run()
+        simu = simpet.SimPET(new_params_file_path)
+        simu.run()
         
-    #     params_file[('center_slice')]=center_slices[1] #1/4 FOV
+        params_file[('center_slice')]=center_slices[1] #1/4 FOV
         
-    #     params_file[('act_map')]=i+"_act.hdr"
-    #     params_file[('att_map')]=i+"_att.hdr"
-    #     params_file[('output_dir')]="NEMA_SpatRes_"+i+"_OF"
+        params_file[('act_map')]=i+"_act.hdr"
+        params_file[('att_map')]=i+"_att.hdr"
+        params_file[('output_dir')]="NEMA_SpatRes_"+i+"_OF"
         
-    #     new_params_file_path = join(data_path,"params_SpatRes_"+i+"_OF.yml")
-    #     with open(new_params_file_path,"w") as pf:
-    #         yaml.dump(params_file,pf,sort_keys=False)  
+        new_params_file_path = join(data_path,"params_SpatRes_"+i+"_OF.yml")
+        with open(new_params_file_path,"w") as pf:
+            yaml.dump(params_file,pf,sort_keys=False)  
             
-    #     message="Params file created: "+ new_params_file_path
-    #     simpet.tools.log_message(log_file, message, 'info')
+        message="Params file created: "+ new_params_file_path
+        simpet.tools.log_message(log_file, message, 'info')
         
-    #     message="Starting simulation for Spatial Resolution: "+i+"_1/4 FOV"
-    #     simpet.tools.log_message(log_file, message, 'info')
+        message="Starting simulation for Spatial Resolution: "+i+"_1/4 FOV"
+        simpet.tools.log_message(log_file, message, 'info')
         
-    #     simu = simpet.SimPET(new_params_file_path)
-    #     simu.run()
+        simu = simpet.SimPET(new_params_file_path)
+        simu.run()
         
     compute_spatRes(dir_path, scanner, mode, fwhm, log_file)
 
@@ -150,7 +150,7 @@ def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
     image_dims = {"size_x": int(lines[16].split()[4]) , "sf_x": float(lines[17].split()[5]) , "size_y": int(lines[19].split()[4]) , "sf_y": float(lines[20].split()[5]) , "size_z": int(lines[22].split()[4]) , "sf_z": float(lines[23].split()[5]) }
     
     cont=0
-    cont_fig=1
+    # cont_fig=1
     for i in ["0_0", "0_10", "10_0"]:
         [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
         # plt.figure(cont_fig)
