@@ -159,7 +159,7 @@ def compute_spatRes(dir_results, scanner, mode, fwhm, log_file):
     image_dims = {"size_x": int(lines[16].split()[4]) , "sf_x": float(lines[17].split()[5]) , "size_y": int(lines[19].split()[4]) , "sf_y": float(lines[20].split()[5]) , "size_z": int(lines[22].split()[4]) , "sf_z": float(lines[23].split()[5]) }
     
     cont=0
-    cont_fig=1
+    # cont_fig=1
     for i in ["0_0", "0_10", "10_0"]:
         [p_X, p_Y, p_Z] = profiles(join(results_path,"NEMA_SpatRes_"+i+"_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hdr"),image_dims, fwhm.get(i), log_file)
         # plt.figure(cont_fig)
@@ -290,9 +290,13 @@ def computeIndices(y,c,log_file):
     return ind1, ind2
     
 def profiles(image_hdr, image_dims, fwhm, log_file):
-    num_vox_x = int(2*np.round(fwhm[0]/image_dims.get("sf_x")))
-    num_vox_y = int(2*np.round(fwhm[1]/image_dims.get("sf_y")))
-    num_vox_z = int(2*np.round(fwhm[2]/image_dims.get("sf_z")))
+    # num_vox_x = int(2*np.round(fwhm[0]/image_dims.get("sf_x")))
+    # num_vox_y = int(2*np.round(fwhm[1]/image_dims.get("sf_y")))
+    # num_vox_z = int(2*np.round(fwhm[2]/image_dims.get("sf_z")))
+    
+    num_vox_x = int(np.round(fwhm[0]/image_dims.get("sf_x")))
+    num_vox_y = int(np.round(fwhm[1]/image_dims.get("sf_y")))
+    num_vox_z = int(np.round(fwhm[2]/image_dims.get("sf_z")))
     
     p_X = np.zeros((1,image_dims.get("size_x")))
     p_Y = np.zeros((1,image_dims.get("size_y")))
