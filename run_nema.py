@@ -22,9 +22,9 @@ def main():
     
     dir_path = dirname(abspath(__file__))
     
-    scanner="Discovery_STE"
-    model_type = "simple_pet"    
-    div=8
+    scanner="GE_Advance"
+    model_type = "cylindrical"    
+    div=30
     simEnv=0
     mode="SimSET"
     
@@ -33,7 +33,7 @@ def main():
     ### Sensitivity test
     A_cal= 14.430 # MBq (activity for sensitivity test)
     t_cal = 60 # s (time of the sensitivity assay)
-    real_sens_value = 8.8 # cps/kBq (value obtained for the Discovery ST)
+    real_sens_value = 6.4 #9.7 #cps/kBq (value obtained for the Biograph mCT) #9.5 #cps/kBq (value obtained for the Discovery_ST) #6.4 cps/kBq (value obtained for the GE_Advance)
     center_slice_Sens = 86
     ###
          
@@ -41,24 +41,27 @@ def main():
     dose_SR = 0.002 # mCi (activity used in the real test for the Discovery ST)
     length_SR = 1200 # s
     center_slices = [86, 130] # center and 1/4 FOV
-    fwhm = {"0_0" : [4.6, 4.6, 4.3], "0_10":[5.7,4.7,6], "10_0":[5.7,4.7,6]} # published fwhm for Discovery_STE
+    fwhm = {"0_0" : [6, 6, 6], "0_10":[6,6,6], "10_0":[6,6,6]} # published fwhm for Discovery_STE
     ### 
     
     ### Image Quality test
-    dose_IQ = 1.25 #mCi
-    length_IQ = 1800 #s ¿?
-    center_slice_IQ = 69
+    # dose_IQ = 1.25 #mCi
+    # length_IQ = 1800 #s ¿?
+    # center_slice_IQ = 69
     ###
     
-    # simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
-    # sens_factor = simu_sens_value/real_sens_value
-    # print(simu_sens_value) # 57.420182893299916
-    # print(sens_factor) # 6.525020783329535
-    
-    sens_factor = 6.525020783329535
+    simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
+    sens_factor = simu_sens_value/real_sens_value
+    message=("Sensitivity Results: \n -Simulation sensitivity value: " + str(simu_sens_value) + 
+    "\n -Sensitivity factor: " + str(sens_factor))
+    print(simu_sens_value) # 57.420182893299916
+    print(sens_factor) # 6.525020783329535
+    print(message)
+    simpet.tools.log_message(log_file, message, 'info')
+    # sens_factor = 6.525020783329535
     
     length_spat_res = np.round(length_SR/sens_factor,2)
-    length_imag_qua = np.round(length_IQ/sens_factor,2)
+    # length_imag_qua = np.round(length_IQ/sens_factor,2)
     
     spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
     # image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
@@ -66,79 +69,85 @@ def main():
         
 def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slices, fwhm, log_file):
      
-    # message="Starting Spatial Resolution measurements"
-    # simpet.tools.log_message(log_file, message, 'info')
+    message="Starting Spatial Resolution measurements"
+    simpet.tools.log_message(log_file, message, 'info')
     
-    # data_file_name="NEMA_spatRes"
-    # data_path = join(dir_path,"Data",data_file_name)
-    # if not exists(data_path):
-    #     os.makedirs(data_path)            
-      
-    # message="Data folder created: "+data_path
-    # simpet.tools.log_message(log_file, message, 'info')
-    
-    # params_file_path = join(dir_path,"NEMA","params.yml")
-    # with open(params_file_path,'rb') as f:
-    #     params_file = yaml.load(f.read(), Loader=yaml.FullLoader)
-        
-    # params_file[('simulation_environment')]=simuEnvironment
-    # params_file[('model_type')]=model_type
-    # params_file[('sim_type')]=mode
-    # params_file[('divisions')]=divisions
-    # params_file[('scanner')]=scanner
-    
-    # params_file[('recons_type')]="FBP2D"
-    # params_file[('total_dose')]=dose #mCi
-    # params_file[('simulation_time')]= float(length) #s
-    # params_file[('patient_dirname')]=data_file_name
-       
-    # maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
-    # for i in ["0_0", "10_0", "0_10"]:
-    #     shutil.copy(join(maps_path,i+"_act.hdr"),data_path)
-    #     shutil.copy(join(maps_path,i+"_act.img"),data_path)
-    #     shutil.copy(join(maps_path,i+"_att.hdr"),data_path)
-    #     shutil.copy(join(maps_path,i+"_att.img"),data_path)
-        
-    #     params_file[('act_map')]=i+"_act.hdr"
-    #     params_file[('att_map')]=i+"_att.hdr"
-    #     params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
-    #     params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
-        
-    #     new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
-    #     with open(new_params_file_path,"w") as pf:
-    #         yaml.dump(params_file,pf,sort_keys=False)          
-    #     message="Params file created: "+ new_params_file_path
-    #     simpet.tools.log_message(log_file, message, 'info')
-        
-    #     message="Starting simulation for Spatial Resolution"+i+"_center"
-    #     simpet.tools.log_message(log_file, message, 'info')
-        
-    #     simu = simpet.SimPET(new_params_file_path)
-    #     simu.run()
-        
-    #     params_file[('center_slice')]=center_slices[1] #1/4 FOV
-        
-    #     params_file[('act_map')]=i+"_act.hdr"
-    #     params_file[('att_map')]=i+"_att.hdr"
-    #     params_file[('output_dir')]="NEMA_SpatRes_"+i+"_OF"
-        
-    #     new_params_file_path = join(data_path,"params_SpatRes_"+i+"_OF.yml")
-    #     with open(new_params_file_path,"w") as pf:
-    #         yaml.dump(params_file,pf,sort_keys=False)  
-            
-    #     message="Params file created: "+ new_params_file_path
-    #     simpet.tools.log_message(log_file, message, 'info')
-        
-    #     message="Starting simulation for Spatial Resolution: "+i+"_1/4 FOV"
-    #     simpet.tools.log_message(log_file, message, 'info')
-        
-    #     simu = simpet.SimPET(new_params_file_path)
-    #     simu.run()
-        
-    compute_spatRes(dir_path, scanner, mode, fwhm, log_file)
+    config_file="config.yml"
+    with open(join(dir_path,config_file),'rb') as f:
+        config= yaml.load(f.read(), Loader=yaml.FullLoader)
+    dir_data_path = config.get("dir_data_path")
+    dir_results = config.get("dir_results_path")
 
-def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
-    results_path = join(dir_path,"Results")
+    data_file_name="NEMA_spatRes"
+    data_path = join(dir_data_path,data_file_name)
+    if not exists(data_path):
+        os.makedirs(data_path)            
+      
+    message="Data folder created: "+data_path
+    simpet.tools.log_message(log_file, message, 'info')
+    
+    params_file_path = join(dir_path,"NEMA","params.yml")
+    with open(params_file_path,'rb') as f:
+        params_file = yaml.load(f.read(), Loader=yaml.FullLoader)
+        
+    params_file[('simulation_environment')]=simuEnvironment
+    params_file[('model_type')]=model_type
+    params_file[('sim_type')]=mode
+    params_file[('divisions')]=divisions
+    params_file[('scanner')]=scanner
+    
+    params_file[('recons_type')]="FBP2D"
+    params_file[('total_dose')]=dose #mCi
+    params_file[('simulation_time')]= float(length) #s
+    params_file[('patient_dirname')]=data_file_name
+       
+    maps_path = join(dir_path,"NEMA","phantoms","spatialResolution")
+    for i in ["0_0", "10_0", "0_10"]:
+        shutil.copy(join(maps_path,i+"_act.hdr"),data_path)
+        shutil.copy(join(maps_path,i+"_act.img"),data_path)
+        shutil.copy(join(maps_path,i+"_att.hdr"),data_path)
+        shutil.copy(join(maps_path,i+"_att.img"),data_path)
+        
+        params_file[('act_map')]=i+"_act.hdr"
+        params_file[('att_map')]=i+"_att.hdr"
+        params_file[('output_dir')]="NEMA_SpatRes_"+i+"_C"
+        params_file[('center_slice')]=center_slices[0] #center of the FOV (cm)
+        
+        new_params_file_path = join(data_path,"params_SpatRes_"+i+"_C.yml")
+        with open(new_params_file_path,"w") as pf:
+            yaml.dump(params_file,pf,sort_keys=False)          
+        message="Params file created: "+ new_params_file_path
+        simpet.tools.log_message(log_file, message, 'info')
+        
+        message="Starting simulation for Spatial Resolution"+i+"_center"
+        simpet.tools.log_message(log_file, message, 'info')
+        
+        simu = simpet.SimPET(new_params_file_path)
+        simu.run()
+        
+        params_file[('center_slice')]=center_slices[1] #1/4 FOV
+        
+        params_file[('act_map')]=i+"_act.hdr"
+        params_file[('att_map')]=i+"_att.hdr"
+        params_file[('output_dir')]="NEMA_SpatRes_"+i+"_OF"
+        
+        new_params_file_path = join(data_path,"params_SpatRes_"+i+"_OF.yml")
+        with open(new_params_file_path,"w") as pf:
+            yaml.dump(params_file,pf,sort_keys=False)  
+            
+        message="Params file created: "+ new_params_file_path
+        simpet.tools.log_message(log_file, message, 'info')
+        
+        message="Starting simulation for Spatial Resolution: "+i+"_1/4 FOV"
+        simpet.tools.log_message(log_file, message, 'info')
+        
+        simu = simpet.SimPET(new_params_file_path)
+        simu.run()
+        
+    compute_spatRes(dir_results, scanner, mode, fwhm, log_file)
+
+def compute_spatRes(dir_results, scanner, mode, fwhm, log_file):
+    results_path = dir_results #join(dir_path,"Results")
     image = join(results_path,"NEMA_SpatRes_0_0_C",mode+"_Sim_"+scanner,"FBP2D","rec_FBP2D.hv")
     half = np.zeros((6,3))
     tenth = np.zeros((6,3))
@@ -156,17 +165,17 @@ def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
         # plt.figure(cont_fig)
         # plt.plot(p_X)
         # plt.title("X "+i+"_center")
-        # plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_X_center.png"))
+        # plt.savefig(join(dir_results,i+"_spatRes_prueba_X_center_"+scanner+".png"))
         
         # plt.figure(cont_fig+1)
         # plt.plot(p_Y)
         # plt.title("Y "+i+"_center")
-        # plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Y_center.png"))
+        # plt.savefig(join(dir_results,i+"_spatRes_prueba_Y_center_"+scanner+".png"))
         
         # plt.figure(cont_fig+2)
         # plt.plot(p_Z)
         # plt.title("Z "+i+"_center")
-        # plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Z_center.png"))
+        # plt.savefig(join(dir_results,i+"_spatRes_prueba_Z_center_"+scanner+".png"))
         
         half[cont,0], tenth[cont,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
         half[cont,1], tenth[cont,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
@@ -176,17 +185,17 @@ def compute_spatRes(dir_path, scanner, mode, fwhm, log_file):
         # plt.figure(cont_fig+3)
         # plt.plot(p_X)
         # plt.title("X "+i+"_OF")
-        # plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_X_OF.png"))
+        # plt.savefig(join(dir_results,i+"_spatRes_prueba_X_OF_"+scanner+".png"))
         
         # plt.figure(cont_fig+4)
         # plt.plot(p_Y)
         # plt.title("Y "+i+"_OF")
-        # plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Y_OF.png"))
+        # plt.savefig(join(dir_results,i+"_spatRes_prueba_Y_OF_"+scanner+".png"))
         
         # plt.figure(cont_fig+5)
         # plt.plot(p_Z)
         # plt.title("Z "+i+"_OF")
-        # plt.savefig(join(dir_path, "NEMA",i+"_spatRes_prueba_Z_OF.png"))
+        # plt.savefig(join(dir_results,i+"_spatRes_prueba_Z_OF_"+scanner+".png"))
         
         half[cont+1,0], tenth[cont+1,0]=compute_fw(p_Y,image_dims.get("sf_y"),log_file)
         half[cont+1,1], tenth[cont+1,1]=compute_fw(p_Z,image_dims.get("sf_z"),log_file)
@@ -373,8 +382,14 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
     message="Starting Sensitivity measurements"
     simpet.tools.log_message(log_file, message, 'info')
     
+    config_file="config.yml"
+    with open(join(dir_path,config_file),'rb') as f:
+        config= yaml.load(f.read(), Loader=yaml.FullLoader)
+    dir_data_path = config.get("dir_data_path")
+    dir_results = config.get("dir_results_path")
+
     data_file_name="NEMA_sensitivity"
-    data_path = join(dir_path,"Data",data_file_name)
+    data_path = join(dir_data_path,data_file_name)
     if not exists(data_path):
         os.makedirs(data_path)            
       
@@ -425,10 +440,10 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
         simu = simpet.SimPET(new_params_file_path)
         simu.run()        
     
-        trues_file_hdr=join(dir_path,"Results",params_file.get('output_dir'),mode+"_Sim_"+scanner,"division_0","trues.hdr")
+        trues_file_hdr=join(dir_results,params_file.get('output_dir'),mode+"_Sim_"+scanner,"division_0","trues.hdr")
         
         if exists(trues_file_hdr):
-            new_folder_SSRB= join(dir_path,"Results",params_file.get('output_dir'),mode+"_Sim_"+scanner,"SSRB")
+            new_folder_SSRB= join(dir_results,params_file.get('output_dir'),mode+"_Sim_"+scanner,"SSRB")
             if not exists(new_folder_SSRB):
                 os.makedirs(new_folder_SSRB)
             new_trues_file_path = join(new_folder_SSRB,"trues.hdr")
@@ -457,10 +472,10 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
             message="Something wrong at the simulation of Sensitivity: C"+str(i+1)
             simpet.tools.log_message(log_file, message, 'error')
      
-    sensitivity = compute_sens(dir_path, scannerParams, mode, os.path.basename(sinos_stir_ssrb), A_cal, t_cal, log_file)
+    sensitivity = compute_sens(dir_results, scannerParams, mode, os.path.basename(sinos_stir_ssrb), A_cal, t_cal, log_file)
     return sensitivity
 
-def compute_sens(dir_path, scannerParams, mode, sinos_name, A_cal, t_cal, log_file):
+def compute_sens(dir_results, scannerParams, mode, sinos_name, A_cal, t_cal, log_file):
     # t_acq=60 #seconds
     n_tubes=5
     X_j=np.array([1.25, 2.5, 3.75, 5, 6.25]) # mm
@@ -469,7 +484,7 @@ def compute_sens(dir_path, scannerParams, mode, sinos_name, A_cal, t_cal, log_fi
     scanner_name=scanner_name[0:-4] #remove extension ".yml"
     with open(scannerParams, 'rb') as f:
         scanner_file = yaml.load(f.read(), Loader=yaml.FullLoader) 
-    results_path = join(dir_path,"Results") 
+    results_path = dir_results #join(dir_path,"Results") 
     views = scanner_file.get("num_aa_bins")
     bins = scanner_file.get("num_td_bins") 
     slices = scanner_file.get("max_segment")*2+1
@@ -494,10 +509,10 @@ def compute_sens(dir_path, scannerParams, mode, sinos_name, A_cal, t_cal, log_fi
     
     plt.figure(1)
     plt.plot(X_j,sum(np.transpose(R/A_cal)))
-    plt.savefig(join(dir_path, "NEMA","fig1_sensitivity.png"))
+    plt.savefig(join(dir_results,"fig1_sensitivity_"+scanner_name+".png"))
     plt.figure(2)
     plt.plot(np.arange(slices),S_i)
-    plt.savefig(join(dir_path, "NEMA","fig2_sensitivity.png"))
+    plt.savefig(join(dir_results, "fig2_sensitivity_"+scanner_name+".png"))
     
     return S_Tot*0.001 #counts/sec/kBq
     
