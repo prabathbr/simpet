@@ -157,12 +157,16 @@ def add_noise(config, scannerParams, sinogram_stir, log_file):
     os.remove(noisy_sinogram_stir_path)
     os.remove(noisy_sinogram_stir_path[0:-2]+"s")
 
-def FBP2D_recons(config,scannerParams, sinograms_stir, output_dir, log_file):
+def FBP2D_recons(config,scannerParams, sinograms_stir, wb, output_dir, log_file):
 
     stir_dir = config.get("dir_stir")
     recons = join(stir_dir,'bin','FBP2D')
     
-    zoom = scannerParams.get("zoomFactor")
+    if wb:
+         zoom = scannerParams.get("zoomFactor_wb")
+    else:
+        zoom = scannerParams.get("zoomFactor")
+        
     xyOutputSize = scannerParams.get("xyOutputSize")
 
     recFileName = join(output_dir,"rec_FBP2D")
@@ -191,12 +195,16 @@ def FBP2D_recons(config,scannerParams, sinograms_stir, output_dir, log_file):
 
     return output
 
-def FBP3D_recons(config,scannerParams, sinograms_stir, output_dir, log_file):
+def FBP3D_recons(config,scannerParams, sinograms_stir, wb, output_dir, log_file):
 
     stir_dir = config.get("dir_stir")
     recons = join(stir_dir,'bin','FBP3DRP')
     
-    zoom = scannerParams.get("zoomFactor")
+    if wb:
+         zoom = scannerParams.get("zoomFactor_wb")
+    else:
+        zoom = scannerParams.get("zoomFactor")
+        
     xyOutputSize = scannerParams.get("xyOutputSize")
 
     recFileName = join(output_dir,"rec_FBP3D")
@@ -278,7 +286,7 @@ def FORE_rebin(config, sinograms_stir, maxSegment, output_dir, log_file):
     
     return sinoFileName+".hs"
 
-def OSEM2D_recons(config, scannerParams, sinograms_stir, additive_sino_stir, att_stir, output_dir, log_file):
+def OSEM2D_recons(config, scannerParams, sinograms_stir, additive_sino_stir, att_stir, wb, output_dir, log_file):
         
     stir_dir = config.get("dir_stir")
     recons = join(stir_dir,'bin','OSMAPOSL')
@@ -287,7 +295,11 @@ def OSEM2D_recons(config, scannerParams, sinograms_stir, additive_sino_stir, att
     maxSegment = scannerParams.get("num_rings") - 1
     sinoFileName = FORE_rebin(config, sinograms_stir, maxSegment, output_dir, log_file)
     
-    zoom = scannerParams.get("zoomFactor")
+    if wb :
+         zoom = scannerParams.get("zoomFactor_wb")
+    else:
+        zoom = scannerParams.get("zoomFactor")
+        
     xyOutputSize = scannerParams.get("xyOutputSize")
     zOutputSize =scannerParams.get("zOutputSize")
     numberOfSubsets = scannerParams.get("numberOfSubsets")
@@ -392,13 +404,17 @@ def OSEM2D_recons(config, scannerParams, sinograms_stir, additive_sino_stir, att
 
     return output
 
-def OSEM3D_recons(config, scannerParams, sinograms_stir, additive_sino_stir, att_stir, output_dir, log_file):
+def OSEM3D_recons(config, scannerParams, sinograms_stir, additive_sino_stir, att_stir, wb, output_dir, log_file):
         
     stir_dir = config.get("dir_stir")
     recons = join(stir_dir,'bin','OSMAPOSL')
 
     max_segment = scannerParams.get("max_segment")
-    zoom = scannerParams.get("zoomFactor")
+    if wb:
+         zoom = scannerParams.get("zoomFactor_wb")
+    else:
+        zoom = scannerParams.get("zoomFactor")
+        
     xyOutputSize = scannerParams.get("xyOutputSize")
     zOutputSize =scannerParams.get("zOutputSize")
     numberOfSubsets = scannerParams.get("numberOfSubsets")

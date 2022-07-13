@@ -22,49 +22,49 @@ def main():
     
     dir_path = dirname(abspath(__file__))
     
-    scanner="GE_Advance"
-    model_type = "cylindrical"    
-    div=30
+    scanner="Discovery_ST"
+    model_type = "simple_pet"    
+    div=8
     simEnv=0
     mode="SimSET"
     
     log_file=join(dir_path,"NEMA","NEMA_log_file_"+scanner+".txt")   
     
     ### Sensitivity test
-    A_cal= 14.430 # MBq (activity for sensitivity test)
-    t_cal = 60 # s (time of the sensitivity assay)
-    real_sens_value = 6.4 #9.7 #cps/kBq (value obtained for the Biograph mCT) #9.5 #cps/kBq (value obtained for the Discovery_ST) #6.4 cps/kBq (value obtained for the GE_Advance)
-    center_slice_Sens = 86
+    # A_cal= 14.430 # MBq (activity for sensitivity test)
+    # t_cal = 60 # s (time of the sensitivity assay)
+    # real_sens_value = 6.4 #9.7 #cps/kBq (value obtained for the Biograph mCT) #9.5 #cps/kBq (value obtained for the Discovery_ST) #6.4 cps/kBq (value obtained for the GE_Advance)
+    # center_slice_Sens = 86
     ###
          
     ### Spatial resolution test
-    dose_SR = 0.002 # mCi (activity used in the real test for the Discovery ST)
-    length_SR = 1200 # s
-    center_slices = [86, 130] # center and 1/4 FOV
-    fwhm = {"0_0" : [6, 6, 6], "0_10":[6,6,6], "10_0":[6,6,6]} # published fwhm for Discovery_STE
+    # dose_SR = 0.002 # mCi (activity used in the real test for the Discovery ST)
+    # length_SR = 1200 # s
+    # center_slices = [86, 130] # center and 1/4 FOV
+    # fwhm = {"0_0" : [6, 6, 6], "0_10":[6,6,6], "10_0":[6,6,6]} # published fwhm for Discovery_STE
     ### 
     
     ### Image Quality test
-    # dose_IQ = 1.25 #mCi
-    # length_IQ = 1800 #s ¿?
-    # center_slice_IQ = 69
+    dose_IQ = 1.25 #mCi
+    length_IQ = 1800 #s ¿?
+    center_slice_IQ = 69
     ###
     
-    simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
-    sens_factor = simu_sens_value/real_sens_value
-    message=("Sensitivity Results: \n -Simulation sensitivity value: " + str(simu_sens_value) + 
-    "\n -Sensitivity factor: " + str(sens_factor))
-    print(simu_sens_value) # 57.420182893299916
-    print(sens_factor) # 6.525020783329535
-    print(message)
-    simpet.tools.log_message(log_file, message, 'info')
-    # sens_factor = 6.525020783329535
+    # simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
+    # sens_factor = simu_sens_value/real_sens_value
+    sens_factor=6.04
+    # message=("Sensitivity Results: \n -Simulation sensitivity value: " + str(simu_sens_value) + 
+    # "\n -Sensitivity factor: " + str(sens_factor))
+    # print(simu_sens_value) # 57.420182893299916
+    # print(sens_factor) # 6.525020783329535
+    # print(message)
+    # simpet.tools.log_message(log_file, message, 'info')
     
-    length_spat_res = np.round(length_SR/sens_factor,2)
-    # length_imag_qua = np.round(length_IQ/sens_factor,2)
+    # length_spat_res = np.round(length_SR/sens_factor,2)
+    length_imag_qua = np.round(length_IQ/sens_factor,2)
     
-    spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
-    # image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
+    # spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
+    image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
   
         
 def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, dose, length, center_slices, fwhm, log_file):
@@ -92,6 +92,7 @@ def spat_res(dir_path, scanner, model_type, divisions, simuEnvironment, mode, do
         
     params_file[('simulation_environment')]=simuEnvironment
     params_file[('model_type')]=model_type
+    params_file[('whole_body')]="0"
     params_file[('sim_type')]=mode
     params_file[('divisions')]=divisions
     params_file[('scanner')]=scanner
@@ -347,6 +348,7 @@ def image_quality(dir_path, scanner, model_type, divisions, simuEnvironment, mod
         
     params_file[('simulation_environment')]=simuEnvironment
     params_file[('model_type')]=model_type
+    params_file[('whole_body')]="1"
     params_file[('sim_type')]=mode
     params_file[('divisions')]=divisions
     params_file[('scanner')]=scanner
@@ -406,6 +408,7 @@ def sensitivity(dir_path, scanner, model_type, divisions, simuEnvironment, mode,
         
     params_file[('simulation_environment')]=simuEnvironment
     params_file[('model_type')]=model_type
+    params_file[('whole_body')]="0"
     params_file[('sim_type')]=mode
     params_file[('divisions')]=divisions
     params_file[('scanner')]=scanner

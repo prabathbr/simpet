@@ -395,7 +395,7 @@ class SimSET_Reconstruction(object):
 
         from src.stir import stir_tools
         
-        print("Starting STIR reconstruction")
+        #print("Starting STIR reconstruction")
         
         recons_algorithm = self.params.get("recons_type")
         if not recons_algorithm:
@@ -403,7 +403,7 @@ class SimSET_Reconstruction(object):
         sinogram_stir = join(self.output_dir, "stir_sinogram.hs")
         additive_sino_stir = join(self.output_dir, "stir_additivesino.hs")
         att_stir = join(self.output_dir, "stir_att.hs")
-
+        wb = self.params.get("whole_body")
         
         if any(exists(i)==False for i in [sinogram_stir,additive_sino_stir,att_stir]):
             print("Something is not ready for the reconstruction")
@@ -412,16 +412,16 @@ class SimSET_Reconstruction(object):
 
 
             if recons_algorithm == 'FBP2D':
-                reconsFile_hdr = stir_tools.FBP2D_recons(self.config ,self.scanner, sinogram_stir, self.output_dir, self.log_file)
+                reconsFile_hdr = stir_tools.FBP2D_recons(self.config ,self.scanner, sinogram_stir, wb, self.output_dir, self.log_file)
         
             elif recons_algorithm == 'FBP3D':
-                reconsFile_hdr = stir_tools.FBP3D_recons(self.config ,self.scanner, sinogram_stir, self.output_dir, self.log_file)
+                reconsFile_hdr = stir_tools.FBP3D_recons(self.config ,self.scanner, sinogram_stir, wb, self.output_dir, self.log_file)
 
             elif recons_algorithm == 'OSEM2D':
-                reconsFile_hdr = stir_tools.OSEM2D_recons(self.config ,self.scanner, sinogram_stir, additive_sino_stir, att_stir, self.output_dir, self.log_file)
+                reconsFile_hdr = stir_tools.OSEM2D_recons(self.config ,self.scanner, sinogram_stir, additive_sino_stir, att_stir, wb, self.output_dir, self.log_file)
                 
             elif recons_algorithm == 'OSEM3D':
-                reconsFile_hdr = stir_tools.OSEM3D_recons(self.config ,self.scanner, sinogram_stir, additive_sino_stir, att_stir, self.output_dir, self.log_file)
+                reconsFile_hdr = stir_tools.OSEM3D_recons(self.config ,self.scanner, sinogram_stir, additive_sino_stir, att_stir, wb, self.output_dir, self.log_file)
         
         
             if exists(reconsFile_hdr):

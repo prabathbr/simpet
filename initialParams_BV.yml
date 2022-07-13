@@ -10,6 +10,8 @@ divisions: 8              # Number os subprocesses for parallel simulation
 scanner: "Discovery_ST"
 # Scanner Model (simple_pet, cylindrical)
 model_type: "simple_pet"
+# Whole-body configuration (1->yes, 0->no) for the matrix size, voxel size, ... of the reconstructed images
+whole_body: 0
 
 #Patient Variables
 patient_dirname: "brainViset_prueba"

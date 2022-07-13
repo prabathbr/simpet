@@ -10,6 +10,8 @@ divisions:               # Number os subprocesses for parallel simulation
 scanner: 
 # Scanner Model (simple_pet, cylindrical)
 model_type: 
+# Whole-body configuration (1->yes, 0->no) for the matrix size, voxel size, ... of the reconstructed images
+whole_body:
 
 #Patient Variables
 patient_dirname: 
