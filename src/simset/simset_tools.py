@@ -487,7 +487,6 @@ def combine_history_files(simset_dir, history_files, output, log_file):
     #tools.osrun(rcommand, log_file)
 
 def simset_calcattenuation(simset_dir,sim_dir,output,hdr_to_copy,nrays=1,timeout=36000):
-
     calcattenuation = join(simset_dir, "bin", "calcattenuation")
 
     current_dir = os.getcwd()
@@ -504,7 +503,7 @@ def simset_calcattenuation(simset_dir,sim_dir,output,hdr_to_copy,nrays=1,timeout
     child.wait()
 
     CHUNK_SIZE = os.path.getsize(hdr_to_copy[0:-3] + 'img')
-    print(CHUNK_SIZE)
+    # print(CHUNK_SIZE)
     with open(output, 'rb') as f:
         chunk = f.read(CHUNK_SIZE)
     with open(output + '.img', 'wb') as chunk_file:

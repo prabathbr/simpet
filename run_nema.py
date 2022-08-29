@@ -22,7 +22,7 @@ def main():
     
     dir_path = dirname(abspath(__file__))
     
-    scanner="Discovery_ST"
+    scanner="GE_Advance" #"Discovery_ST"
     model_type = "simple_pet"    
     div=8
     simEnv=0
@@ -31,17 +31,17 @@ def main():
     log_file=join(dir_path,"NEMA","NEMA_log_file_"+scanner+".txt")   
     
     ### Sensitivity test
-    # A_cal= 14.430 # MBq (activity for sensitivity test)
-    # t_cal = 60 # s (time of the sensitivity assay)
-    # real_sens_value = 6.4 #9.7 #cps/kBq (value obtained for the Biograph mCT) #9.5 #cps/kBq (value obtained for the Discovery_ST) #6.4 cps/kBq (value obtained for the GE_Advance)
-    # center_slice_Sens = 86
+    A_cal= 14.430 # MBq (activity for sensitivity test)
+    t_cal = 60 # s (time of the sensitivity assay)
+    real_sens_value = 6.4 #9.7 #cps/kBq (value obtained for the Biograph mCT) #9.5 #cps/kBq (value obtained for the Discovery_ST) #6.4 cps/kBq (value obtained for the GE_Advance)
+    center_slice_Sens = 86
     ###
          
     ### Spatial resolution test
-    # dose_SR = 0.002 # mCi (activity used in the real test for the Discovery ST)
-    # length_SR = 1200 # s
-    # center_slices = [86, 130] # center and 1/4 FOV
-    # fwhm = {"0_0" : [6, 6, 6], "0_10":[6,6,6], "10_0":[6,6,6]} # published fwhm for Discovery_STE
+    dose_SR = 0.002 # mCi (activity used in the real test for the Discovery ST)
+    length_SR = 1200 # s
+    center_slices = [86, 130] # center and 1/4 FOV
+    fwhm = {"0_0" : [6, 6, 6], "0_10":[6,6,6], "10_0":[6,6,6]} # published fwhm for Discovery_STE
     ### 
     
     ### Image Quality test
@@ -50,20 +50,17 @@ def main():
     center_slice_IQ = 69
     ###
     
-    # simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
-    # sens_factor = simu_sens_value/real_sens_value
-    sens_factor=6.04
-    # message=("Sensitivity Results: \n -Simulation sensitivity value: " + str(simu_sens_value) + 
-    # "\n -Sensitivity factor: " + str(sens_factor))
-    # print(simu_sens_value) # 57.420182893299916
-    # print(sens_factor) # 6.525020783329535
-    # print(message)
-    # simpet.tools.log_message(log_file, message, 'info')
+    simu_sens_value = sensitivity(dir_path, scanner, model_type, div, simEnv, mode, A_cal, t_cal, center_slice_Sens, log_file)
+    sens_factor = simu_sens_value/real_sens_value
     
-    # length_spat_res = np.round(length_SR/sens_factor,2)
+    message=("Sensitivity Results: \n -Simulation sensitivity value: " + str(simu_sens_value) + 
+    "\n -Sensitivity factor: " + str(sens_factor))
+    simpet.tools.log_message(log_file, message, 'info')
+    
+    length_spat_res = np.round(length_SR/sens_factor,2)
     length_imag_qua = np.round(length_IQ/sens_factor,2)
     
-    # spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
+    spat_res(dir_path, scanner, model_type, div, simEnv, mode, dose_SR, length_spat_res, center_slices, fwhm, log_file)  
     image_quality(dir_path, scanner, model_type, div, simEnv, mode, dose_IQ, length_imag_qua, center_slice_IQ, log_file)
   
         

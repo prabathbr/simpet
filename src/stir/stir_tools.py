@@ -174,7 +174,7 @@ def FBP2D_recons(config,scannerParams, sinograms_stir, wb, output_dir, log_file)
     paramsFile = join(output_dir,"FBP2D.par")
     new_file = open(paramsFile, "w")
     new_file.write(
-            "fbp2dparameters :=  :=\n\n" + 
+            "fbp2dparameters :=  \n\n" + 
             "input file := " + sinograms_stir + "\n" +
             "output filename prefix := " + recFileName + "\n\n" +
             "zoom := " + str(zoom) + "\n" +

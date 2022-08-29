@@ -22,7 +22,7 @@ coincidence_window: 12.5     # nanoseconds. Used only for random simulation (Sim
 # Reconstruction
 max_segment: 11              # Maximum Ring difference on the reconstruction
 zoomFactor: 1.69             # Zoom factor in x and y
-zoomFactor_wb:               # Zoom factor in x and y for whole body configuration		
+zoomFactor_wb: 0.77          # Zoom factor in x and y for whole body configuration		
 xyOutputSize: 128
 zOutputSize: 35
 zOutputVoxelSize: 4.25       # mm
